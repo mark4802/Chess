@@ -26,6 +26,48 @@ class GameState():
         self.moveLog.append(move) # Log move so i can undo later
         self.whiteToMove = not self.whiteToMove # Switch turn
 
+
+    def undoMove(self):
+        if len(self.moveLog) != 0:
+            move = self.moveLog.pop()
+            self.board[move.startRow][move.startCol] = move.pieceMoved
+            self.board[move.endRow][move.endCol] = move.pieceCaptured
+            self.whiteToMove = not self.whiteToMove
+
+    """
+    All moves considering checks
+    """
+    def getValidMoves(self):
+        return self.getAllPossibleMoves()
+
+
+    """
+    All moves without considering checks
+    """
+    def getAllPossibleMoves(self):
+        moves = []
+        for row in range(len(self.board)):
+            for col in range(len(self.board[row])):
+                turn = self.board[row][col][0]
+                if (turn == "w" and self.whiteToMove) or (turn == "b" and not self.whiteToMove):
+                    piece = self.board[row][col][1]
+                    if piece == "p":
+                        self.getPawnMoves(row, col, moves)
+                    elif piece == "R":
+                        self.getRookMoves(row, col, moves)
+        return moves
+                    
+
+    """
+    Get all the pawn moves for the pawn located at row, col and add these moves to the list
+    """
+    def getPawnMoves(self, row, col, moves):
+        pass
+
+    def getRookMoves(self, row, col, moves):
+        pass
+
+
 class Move():
     # Maps keys to values
     # key : value
@@ -44,6 +86,14 @@ class Move():
         self.endCol = endSq[1]
         self.pieceMoved = board[self.startRow][self.startCol]
         self.pieceCaptured = board[self.endRow][self.endCol]
+        self.moveID = self.startRow * 1000 + self.startCol * 100 + self.endRow * 10 + self.endCol
+        print(self.moveID)
+
+    def __eq__(self, other):
+        if isinstance(other, Move):
+            return self.moveID == other.moveID
+        return False
+    
 
     def getChessNotation(self):
         return self.getRankFile(self.startRow, self.startCol) + self.getRankFile(self.endRow, self.endCol)
