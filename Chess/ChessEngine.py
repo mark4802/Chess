@@ -14,9 +14,11 @@ class GameState():
             ["--", "--", "--", "--", "--", "--", "--", "--"],
             ["--", "--", "--", "--", "--", "--", "--", "--"],
             ["--", "--", "--", "--", "--", "--", "--", "--"],
-            ["--", "--", "--", "--", "--", "--", "--", "--"],
+            ["--", "--", "--", "bp", "--", "--", "--", "--"],
             ["wp", "wp", "wp", "wp", "wp", "wp", "wp", "wp"],
             ["wR", "wN", "wB", "wQ", "wK", "wB", "wN", "wR"]]
+        self.moveFunctions = {"p": self.getPawnMoves, "R": self.getRookMoves, "N": self.getKnightMoves, "B": self.getBishopMoves, "Q": self.getQueenMoves, "K": self.getKingMoves}
+
         self.whiteToMove = True
         self.moveLog = []
 
@@ -51,10 +53,7 @@ class GameState():
                 turn = self.board[row][col][0]
                 if (turn == "w" and self.whiteToMove) or (turn == "b" and not self.whiteToMove):
                     piece = self.board[row][col][1]
-                    if piece == "p":
-                        self.getPawnMoves(row, col, moves)
-                    elif piece == "R":
-                        self.getRookMoves(row, col, moves)
+                    self.moveFunctions[piece](row, col, moves)
         return moves
                     
 
@@ -62,9 +61,32 @@ class GameState():
     Get all the pawn moves for the pawn located at row, col and add these moves to the list
     """
     def getPawnMoves(self, row, col, moves):
-        pass
+        if self.whiteToMove:
+            if self.board[row-1][col] == "--":
+                moves.append(Move((row, col), (row-1, col), self.board))
+                if row == 6 and self.board[row-2][col] == "--": 
+                    moves.append(Move((row, col), (row-2, col), self.board))
+            if col-1 >= 0: # Capture to the left
+                if self.board[row-1][col-1][0] == "b":
+                    moves.append(Move((row, col), (row-1, col-1), self.board))
+            if col+1 <= 7: # Captures to the right
+                if self.board[row-1][col+1][0] == "b": 
+                    moves.append(Move((row, col), (row-1, col+1), self.board))
+
 
     def getRookMoves(self, row, col, moves):
+        pass
+
+    def getKnightMoves(self, row, col, moves):
+        pass
+
+    def getBishopMoves(self, row, col, moves):
+        pass
+    
+    def getQueenMoves(self, row, col, moves):
+        pass
+
+    def getKingMoves(self, row, col, moves):
         pass
 
 
