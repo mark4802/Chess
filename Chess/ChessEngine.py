@@ -21,13 +21,21 @@ class GameState():
 
         self.whiteToMove = True
         self.moveLog = []
+        self.whiteKingLocation = (7, 4) # Starting location
+        self.blackKingLocation = (0, 4)
+        self.checkMate = False
+        self.staleMate = False
 
     def makeMove(self, move):
         self.board[move.startRow][move.startCol] = "--"
         self.board[move.endRow][move.endCol] = move.pieceMoved
         self.moveLog.append(move) # Log move so i can undo later
         self.whiteToMove = not self.whiteToMove # Switch turn
-
+        # Update kings location if moved (for checks)
+        if move.pieceMoved == "wK":
+            self.whiteKingLocation = (move.endRow, move.endCol)
+        elif move.pieceMoved == "bK":
+            self.blackKingLocation = (move.endRow, move.endCol)
 
     def undoMove(self):
         if len(self.moveLog) != 0:
@@ -35,17 +43,60 @@ class GameState():
             self.board[move.startRow][move.startCol] = move.pieceMoved
             self.board[move.endRow][move.endCol] = move.pieceCaptured
             self.whiteToMove = not self.whiteToMove
+            if move.pieceMoved == "wK":
+                self.whiteKingLocation = (move.startRow, move.startCol)
+            elif move.pieceMoved == "bK":
+                self.blackKingLocation = (move.startRow, move.startCol)
+            
 
     """
     All moves considering checks
     """
     def getValidMoves(self):
-        return self.getAllPossibleMoves()
+        # 1. Generate all possible moves
+        moves = self.getAllPossibleMoves()
+        # 2. Make the move
+        for i in range(len(moves)-1, -1, -1):
+            self.makeMove(moves[i])
+            # 3. Generate all opponents moves
+            # 4. For each of opponents moves, see if they attack king
+            self.whiteToMove = not self.whiteToMove
+            if self.inCheck():
+                moves.remove(moves[i]) # 5. If they attack king, its not a valid move
+            self.whiteToMove = not self.whiteToMove
+            self.undoMove()
+        if len(moves) == 0: # Either checkmate or stalemate
+            if self.inCheck():
+                self.checkMate = True
+            else:
+                self.staleMate = True
+        else:
+            self.checkMate = False
+            self.staleMate = False
+        return moves
+    
+
+    # Determine if the current player is in checkc
+    def inCheck(self):
+        if self.whiteToMove:
+            return self.squareUnderAttack(self.whiteKingLocation[0], self.whiteKingLocation[1])
+        else:
+            return self.squareUnderAttack(self.blackKingLocation[0], self.blackKingLocation[1])
+
+    # Determine if the enemy can attack square row, col
+    def squareUnderAttack(self, row, col):
+        self.whiteToMove = not self.whiteToMove 
+        oppMoves = self.getAllPossibleMoves()
+        self.whiteToMove = not self.whiteToMove
+        for move in oppMoves:
+            if move.endRow == row and move.endCol == col: # Square is undert attack
+                return True
+        return False
 
 
-    """
-    All moves without considering checks
-    """
+
+    
+    # All moves without considering checks
     def getAllPossibleMoves(self):
         moves = []
         for row in range(len(self.board)):
@@ -87,7 +138,7 @@ class GameState():
 
 
     def getRookMoves(self, row, col, moves):
-        directions = ((-1,0), (0,-1), (1,0), (0,1)) # Up, left, down, right
+        directions = ((-1, 0), (0, -1), (1, 0), (0, 1)) # Up, left, down, right
         enemyColor = "b" if self.whiteToMove else "w"
         for d in directions:
             for i in range(1,8):
@@ -105,7 +156,7 @@ class GameState():
                 else:
                     break
     def getKnightMoves(self, row, col, moves):
-        knightMoves = ((-2,-1), (-2,1), (-1,-2), (-1,2), (1,-2), (1,2), (2,-1), (2,1))
+        knightMoves = ((-2, -1), (-2, 1), (-1, -2), (-1, 2), (1, -2), (1, 2), (2, -1), (2, 1))
         allyColor = "w" if self.whiteToMove else "b"
         for m in knightMoves:
             endRow = row+m[0]
@@ -116,7 +167,7 @@ class GameState():
                     moves.append(Move((row, col), (endRow, endCol), self.board))
 
     def getBishopMoves(self, row, col, moves):
-        directions = ((-1,-1), (-1,1), (1,-1), (1,1))
+        directions = ((-1, -1), (-1, 1), (1, -1), (1, 1))
         enemyColor = "b" if self.whiteToMove else "w"
         for d in directions:
             for i in range(1,8):
@@ -139,7 +190,7 @@ class GameState():
         self.getBishopMoves(row, col, moves)
 
     def getKingMoves(self, row, col, moves):
-        kingMoves = ((-1,-1), (-1,0), (-1,1), (0,-1), (0,1), (1,-1), (1,0), (1,1))
+        kingMoves = ((-1, -1), (-1, 0), (-1, 1), (0, -1), (0, 1), (1, -1), (1, 0), (1, 1))
         allyColor = "w" if self.whiteToMove else "b"
         for i in range(8):
             endRow = row+kingMoves[i][0]
