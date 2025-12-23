@@ -1,6 +1,5 @@
 # This is our main driver file. It will be responsible for handliung user input and displaying the current GameState object.
 
-
 import pygame as p
 import ChessEngine
 
@@ -71,19 +70,39 @@ def main():
         if moveMade:
             validMoves = gs.getValidMoves()
             moveMade = False
-
                     
         drawGameState(screen, gs)
+
+        if gs.checkMate:
+            if gs.whiteToMove:
+                drawText(screen, "Black wins by checkmate")
+            else:
+                drawText(screen, "White wins by checkmate")
+        elif gs.staleMate:
+            drawText(screen, "Stalemate")
+
         clock.tick(MAX_FPS)
         p.display.flip()
 
 
-"""
-Responsible for all graphichs in current game state
-"""
+
+
+# Responsible for all graphichs in current game state
+
 def drawGameState(screen, gs):
     drawBoard(screen)
     drawPieces(screen, gs.board)
+
+def drawText(screen, text):
+    font = p.font.SysFont("Helvetica", 32, True, False)
+    textObject = font.render(text, 0, p.Color("Black"))
+    textLocation = p.Rect(0, 0, WIDTH, HEIGHT).move(
+        WIDTH/2 - textObject.get_width()/2,
+        HEIGHT/2 - textObject.get_height()/2
+    )
+    screen.blit(textObject, textLocation)
+    textObject = font.render(text, 0, p.Color("Gray"))
+    screen.blit(textObject, textLocation.move(2, 2))
 
 
 def drawBoard(screen):
