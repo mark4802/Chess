@@ -1,6 +1,5 @@
-"""
-This is our main driver file. It will be responsible for handliung user input and displaying the current GameState object.
-"""
+# This is our main driver file. It will be responsible for handliung user input and displaying the current GameState object.
+
 
 import pygame as p
 import ChessEngine
@@ -11,9 +10,9 @@ SQ_SIZE = HEIGHT // DIMENSION
 MAX_FPS = 15 #for animations
 IMAGES = {}
 
-'''
-Initialise a global dictionary of images. This will only be called once in the main
-'''
+
+# Initialise a global dictionary of images. This will only be called once in the main
+
 
 def loadImages():
     pieces = ["wp", "wR", "wN", "wB", "wK", "wQ", "bp", "bR", "bN", "bB", "bK", "bQ"]
@@ -21,9 +20,8 @@ def loadImages():
         IMAGES[piece] = p.transform.scale(p.image.load("images/" + piece + ".png"), (SQ_SIZE, SQ_SIZE))
 
 
-'''
-The main driver for our code. This will handle user input and updating the graphics
-'''
+# The main driver for our code. This will handle user input and updating the graphics
+
 def main():
     p.init()
     screen = p.display.set_mode((WIDTH, HEIGHT))
@@ -59,8 +57,8 @@ def main():
                             gs.makeMove(validMoves[i])
                             moveMade = True
                             animate = True
-                            sqSelected = ()  # reset for the next turn
-                            playerClicks = []  # reset for the next turn
+                            sqSelected = ()  # Reset for the next turn
+                            playerClicks = []  # Reset for the next turn
                     if not moveMade:
                         playerClicks = [sqSelected]
 
@@ -100,7 +98,7 @@ def drawPieces(screen, board):
     for row in range(DIMENSION):
         for col in range(DIMENSION):
             piece = board[row][col]
-            if piece != "--": # not empty square
+            if piece != "--": # Not empty square
                 screen.blit(IMAGES[piece], p.Rect(col*SQ_SIZE, row*SQ_SIZE, SQ_SIZE, SQ_SIZE))
 
 if __name__ == "__main__":
