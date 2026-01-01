@@ -2,6 +2,7 @@
 
 import pygame as p
 import ChessEngine
+import SmartMoveFinder
 
 WIDTH = HEIGHT = 512
 DIMENSION = 8 # chess board dimensions
@@ -27,6 +28,8 @@ def main():
     clock = p.time.Clock()
     screen.fill(p.Color("white"))
     gs = ChessEngine.GameState()
+    playerOne = True  # True if human is playing white
+    playerTwo = False # True if human is playing black
     validMoves = gs.getValidMoves()
     moveMade = False # Flag variable
     loadImages()# Only once before loop
@@ -34,10 +37,11 @@ def main():
     sqSelected = () # No square is selected as default
     playerClicks = [] # Keep track of player clicks (eg. [(6, 4), (4, 4)])
     while running:
+        humanTurn = (gs.whiteToMove and playerOne) or (not gs.whiteToMove and playerTwo)
         for e in p.event.get():
             if e.type == p.QUIT:
                 running = False
-            elif e.type == p.MOUSEBUTTONDOWN:
+            elif e.type == p.MOUSEBUTTONDOWN and humanTurn:
                 location = p.mouse.get_pos()
                 col = location[0] // SQ_SIZE
                 row = location[1] // SQ_SIZE
@@ -65,7 +69,17 @@ def main():
             elif e.type == p.KEYDOWN:
                 if e.key == p.K_z: # Call undo when "z" is prssed
                     gs.undoMove()
-                    moveMade = True
+                    moveMade = True 
+
+        # AI move
+        if not humanTurn and not moveMade and not gs.checkMate and not gs.staleMate:
+            aiMove = SmartMoveFinder.findBestMove(gs, validMoves)
+            if aiMove is None:
+                aiMove = SmartMoveFinder.findRandomMove(validMoves)
+            gs.makeMove(aiMove)
+            moveMade = True
+
+
 
         if moveMade:
             validMoves = gs.getValidMoves()
